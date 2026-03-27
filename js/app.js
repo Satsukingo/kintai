@@ -90,6 +90,16 @@ const App = {
     return this.users.find(u => u.user_id === select.value);
   },
 
+  // 小数時間を「○時間○分」形式に変換
+  formatHours(decimalHours) {
+    if (!decimalHours && decimalHours !== 0) return '-';
+    var h = Math.floor(decimalHours);
+    var m = Math.round((decimalHours - h) * 60);
+    if (h === 0) return m + '分';
+    if (m === 0) return h + '時間';
+    return h + '時間' + m + '分';
+  },
+
   showAlert(message, type = 'info') {
     const container = document.getElementById('alert-container');
     const alert = document.createElement('div');

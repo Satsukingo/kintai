@@ -72,7 +72,7 @@ const Attendance = {
         <div class="mt-3">
           <span class="badge bg-primary fs-6 me-2">出勤: ${record.clock_in.substring(11, 16)}</span>
           <span class="badge bg-danger fs-6 me-2">退勤: ${record.clock_out.substring(11, 16)}</span>
-          <span class="badge bg-info fs-6">稼働: ${record.working_hours}h</span>
+          <span class="badge bg-info fs-6">稼働: ${App.formatHours(record.working_hours)}</span>
         </div>
       </div>`;
   },
@@ -101,7 +101,7 @@ const Attendance = {
     try {
       const res = await API.clockOut(user.user_id);
       if (res.status === 'ok') {
-        App.showAlert(`退勤しました（稼働時間: ${res.data.working_hours}h）`, 'success');
+        App.showAlert(`退勤しました（稼働時間: ${App.formatHours(res.data.working_hours)}）`, 'success');
         this.loadToday();
       } else {
         App.showAlert(res.message, 'warning');
@@ -157,7 +157,7 @@ const Attendance = {
           <td>${r.date}</td>
           <td>${r.clock_in ? r.clock_in.substring(11, 16) : '-'}</td>
           <td>${r.clock_out ? r.clock_out.substring(11, 16) : '-'}</td>
-          <td>${r.working_hours || '-'}</td>
+          <td>${App.formatHours(r.working_hours)}</td>
           <td>
             <button class="btn btn-sm btn-outline-primary" onclick="Attendance.editRecord('${r.record_id}', '${r.clock_in}', '${r.clock_out}')">
               編集
@@ -167,7 +167,7 @@ const Attendance = {
     }).join('');
 
     document.getElementById('list-total').textContent =
-      `合計稼働時間: ${Math.round(totalHours * 100) / 100} 時間`;
+      `合計稼働時間: ${App.formatHours(totalHours)}`;
   },
 
   editRecord(recordId, clockIn, clockOut) {
