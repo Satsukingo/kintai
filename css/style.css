@@ -1,0 +1,123 @@
+/* ============================================================
+   勤怠管理システム カスタムスタイル
+   ============================================================ */
+
+body {
+  background-color: #f5f7fa;
+  font-family: 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif;
+}
+
+.navbar {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.nav-tabs .nav-link {
+  font-weight: 500;
+  color: #495057;
+  border: none;
+  padding: 0.75rem 1.25rem;
+  transition: all 0.2s;
+}
+
+.nav-tabs .nav-link:hover {
+  color: #0d6efd;
+  border-bottom: 3px solid #dee2e6;
+}
+
+.nav-tabs .nav-link.active {
+  color: #0d6efd;
+  border-bottom: 3px solid #0d6efd;
+  background: transparent;
+}
+
+.admin-sub-tabs .btn {
+  border-radius: 20px;
+  padding: 0.35rem 1rem;
+  font-size: 0.875rem;
+}
+
+.admin-sub-tabs .btn.active {
+  background-color: #0d6efd;
+  color: white;
+}
+
+.card {
+  border: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.table {
+  vertical-align: middle;
+}
+
+.table th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+
+.btn-lg {
+  padding: 0.75rem 2rem;
+  font-size: 1.1rem;
+}
+
+#alert-container {
+  position: fixed;
+  top: 70px;
+  right: 20px;
+  z-index: 1080;
+  max-width: 400px;
+}
+
+#alert-container .alert {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.badge.fs-6 {
+  font-size: 0.95rem !important;
+  padding: 0.5em 0.8em;
+}
+
+.user-select-wrapper {
+  max-width: 300px;
+}
+
+.filter-bar {
+  background: white;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.filter-bar select,
+.filter-bar input {
+  max-width: 150px;
+  display: inline-block;
+}
+
+.comp-total {
+  font-size: 1.1rem;
+  padding: 0.75rem 1rem;
+  background: #e8f4fd;
+  border-radius: 8px;
+  margin-top: 1rem;
+}
+
+@media (max-width: 768px) {
+  .nav-tabs .nav-link {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+  }
+
+  .filter-bar select,
+  .filter-bar input {
+    max-width: 100%;
+    margin-bottom: 0.5rem;
+  }
+
+  .table {
+    font-size: 0.85rem;
+  }
+}

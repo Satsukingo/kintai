@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>勤怠管理システム</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="css/style.css" rel="stylesheet">
+</head>
+<body>
+
+<!-- ナビゲーション -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+  <div class="container">
+    <span class="navbar-brand fw-bold"><i class="bi bi-clock-history"></i> 勤怠管理</span>
+  </div>
+</nav>
+
+<!-- アラート表示エリア -->
+<div id="alert-container"></div>
+
+<!-- メインタブ -->
+<div class="container mt-3">
+  <ul class="nav nav-tabs mb-3">
+    <li class="nav-item">
+      <button class="nav-link active" data-tab="clock">
+        <i class="bi bi-door-open"></i> 出退勤
+      </button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link" data-tab="list">
+        <i class="bi bi-table"></i> 勤怠一覧
+      </button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link" data-tab="report">
+        <i class="bi bi-journal-text"></i> 日報
+      </button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link" data-tab="admin">
+        <i class="bi bi-gear"></i> 管理者
+      </button>
+    </li>
+  </ul>
+
+  <!-- ================================================================ -->
+  <!-- 出退勤タブ -->
+  <!-- ================================================================ -->
+  <div class="tab-content" id="tab-clock">
+    <div class="card">
+      <div class="card-body">
+        <div class="user-select-wrapper mb-4">
+          <label class="form-label fw-bold">ユーザー選択</label>
+          <select class="form-select user-select" id="clock-user-select" onchange="Attendance.loadToday()">
+            <option value="">ユーザーを選択</option>
+          </select>
+        </div>
+        <div id="clock-status">
+          <p class="text-muted">ユーザーを選択してください</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================================ -->
+  <!-- 勤怠一覧タブ -->
+  <!-- ================================================================ -->
+  <div class="tab-content d-none" id="tab-list">
+    <div class="filter-bar d-flex flex-wrap align-items-end gap-2">
+      <div class="user-select-wrapper">
+        <label class="form-label small fw-bold mb-1">ユーザー</label>
+        <select class="form-select form-select-sm user-select" id="list-user-select" onchange="Attendance.loadList()">
+          <option value="">ユーザーを選択</option>
+        </select>
+      </div>
+      <div>
+        <label class="form-label small fw-bold mb-1">年</label>
+        <select class="form-select form-select-sm" id="list-year" onchange="Attendance.loadList()"></select>
+      </div>
+      <div>
+        <label class="form-label small fw-bold mb-1">月</label>
+        <select class="form-select form-select-sm" id="list-month" onchange="Attendance.loadList()"></select>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead>
+              <tr>
+                <th>日付</th>
+                <th>出勤</th>
+                <th>退勤</th>
+                <th>稼働時間</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="attendance-table-body">
+              <tr><td colspan="6" class="text-center text-muted">ユーザーを選択してください</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div id="list-total" class="comp-total mt-2"></div>
+  </div>
+
+  <!-- ================================================================ -->
+  <!-- 日報タブ -->
+  <!-- ================================================================ -->
+  <div class="tab-content d-none" id="tab-report">
+    <div class="row">
+      <div class="col-lg-5 mb-3">
+        <div class="card">
+          <div class="card-header fw-bold">日報入力</div>
+          <div class="card-body">
+            <div class="mb-3">
+              <label class="form-label small fw-bold">ユーザー</label>
+              <select class="form-select user-select" id="report-user-select" onchange="Report.load()">
+                <option value="">ユーザーを選択</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label small fw-bold">日付</label>
+              <input type="date" class="form-control" id="report-date" onchange="Report.loadExistingReport()">
+            </div>
+            <div class="mb-3">
+              <label class="form-label small fw-bold">業務内容 <span class="text-danger">*</span></label>
+              <textarea class="form-control" id="report-work-content" rows="3" placeholder="本日の業務内容を入力"></textarea>
+            </div>
+            <div class="mb-3">
+              <label class="form-label small fw-bold">進捗</label>
+              <textarea class="form-control" id="report-progress" rows="2" placeholder="進捗状況を入力"></textarea>
+            </div>
+            <div class="mb-3">
+              <label class="form-label small fw-bold">備考</label>
+              <textarea class="form-control" id="report-notes" rows="2" placeholder="備考があれば入力"></textarea>
+            </div>
+            <button class="btn btn-primary w-100" onclick="Report.save()">
+              <i class="bi bi-save"></i> 保存
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-7">
+        <h6 class="fw-bold mb-3">今月の日報</h6>
+        <div id="report-list">
+          <p class="text-muted">ユーザーを選択してください</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================================ -->
+  <!-- 管理者タブ -->
+  <!-- ================================================================ -->
+  <div class="tab-content d-none" id="tab-admin">
+    <!-- 管理者サブタブ -->
+    <div class="admin-sub-tabs d-flex flex-wrap gap-2 mb-3">
+      <button class="btn btn-outline-primary btn-sm active" data-admin-tab="admin-attendance" onclick="Admin.showSubTab('admin-attendance')">
+        <i class="bi bi-calendar-check"></i> 勤怠確認
+      </button>
+      <button class="btn btn-outline-primary btn-sm" data-admin-tab="admin-reports" onclick="Admin.showSubTab('admin-reports')">
+        <i class="bi bi-journal-text"></i> 日報確認
+      </button>
+      <button class="btn btn-outline-primary btn-sm" data-admin-tab="admin-compensation" onclick="Admin.showSubTab('admin-compensation')">
+        <i class="bi bi-cash-stack"></i> 報酬計算
+      </button>
+      <button class="btn btn-outline-primary btn-sm" data-admin-tab="admin-users" onclick="Admin.showSubTab('admin-users')">
+        <i class="bi bi-people"></i> ユーザー管理
+      </button>
+    </div>
+
+    <!-- 管理: 勤怠確認 -->
+    <div class="admin-subtab" id="admin-attendance">
+      <div class="filter-bar d-flex flex-wrap align-items-end gap-2">
+        <div>
+          <label class="form-label small fw-bold mb-1">年</label>
+          <select class="form-select form-select-sm" id="admin-year" onchange="Admin.loadAttendance()"></select>
+        </div>
+        <div>
+          <label class="form-label small fw-bold mb-1">月</label>
+          <select class="form-select form-select-sm" id="admin-month" onchange="Admin.loadAttendance()"></select>
+        </div>
+        <div>
+          <label class="form-label small fw-bold mb-1">ユーザー</label>
+          <select class="form-select form-select-sm" id="admin-user-filter" onchange="Admin.loadAttendance()">
+            <option value="">全員</option>
+          </select>
+        </div>
+        <div>
+          <button class="btn btn-sm btn-success" onclick="Admin.downloadCSV()">
+            <i class="bi bi-download"></i> CSV出力
+          </button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead>
+                <tr>
+                  <th>ユーザー</th>
+                  <th>日付</th>
+                  <th>出勤</th>
+                  <th>退勤</th>
+                  <th>稼働時間</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody id="admin-attendance-body">
+                <tr><td colspan="7" class="text-center text-muted">読み込み中...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 管理: 日報確認 -->
+    <div class="admin-subtab d-none" id="admin-reports">
+      <div class="filter-bar d-flex flex-wrap align-items-end gap-2">
+        <div>
+          <label class="form-label small fw-bold mb-1">年</label>
+          <select class="form-select form-select-sm" id="admin-report-year" onchange="Admin.loadReports()"></select>
+        </div>
+        <div>
+          <label class="form-label small fw-bold mb-1">月</label>
+          <select class="form-select form-select-sm" id="admin-report-month" onchange="Admin.loadReports()"></select>
+        </div>
+      </div>
+      <div id="admin-reports-body">
+        <p class="text-muted">読み込み中...</p>
+      </div>
+    </div>
+
+    <!-- 管理: 報酬計算 -->
+    <div class="admin-subtab d-none" id="admin-compensation">
+      <div class="filter-bar d-flex flex-wrap align-items-end gap-2">
+        <div>
+          <label class="form-label small fw-bold mb-1">年</label>
+          <select class="form-select form-select-sm" id="admin-comp-year" onchange="Admin.loadCompensation()"></select>
+        </div>
+        <div>
+          <label class="form-label small fw-bold mb-1">月</label>
+          <select class="form-select form-select-sm" id="admin-comp-month" onchange="Admin.loadCompensation()"></select>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead>
+                <tr>
+                  <th>ユーザー</th>
+                  <th class="text-end">出勤日数</th>
+                  <th class="text-end">稼働時間</th>
+                  <th class="text-end">時給</th>
+                  <th class="text-end">報酬額</th>
+                </tr>
+              </thead>
+              <tbody id="admin-comp-body">
+                <tr><td colspan="6" class="text-center text-muted">読み込み中...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div id="comp-total" class="comp-total"></div>
+    </div>
+
+    <!-- 管理: ユーザー管理 -->
+    <div class="admin-subtab d-none" id="admin-users">
+      <div class="card mb-3">
+        <div class="card-header fw-bold">ユーザー追加</div>
+        <div class="card-body">
+          <div class="row g-2 align-items-end">
+            <div class="col-auto">
+              <label class="form-label small fw-bold mb-1">ユーザー名</label>
+              <input type="text" class="form-control form-control-sm" id="new-user-name" placeholder="名前">
+            </div>
+            <div class="col-auto">
+              <label class="form-label small fw-bold mb-1">時給（円）</label>
+              <input type="number" class="form-control form-control-sm" id="new-user-rate" placeholder="1500">
+            </div>
+            <div class="col-auto">
+              <button class="btn btn-sm btn-primary" onclick="Admin.addUser()">
+                <i class="bi bi-plus-circle"></i> 追加
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>ユーザー名</th>
+                  <th class="text-end">時給</th>
+                  <th>状態</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody id="admin-users-body">
+                <tr><td colspan="5" class="text-center text-muted">読み込み中...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================ -->
+<!-- モーダル: 勤怠編集 -->
+<!-- ================================================================ -->
+<div class="modal fade" id="edit-attendance-modal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">勤怠記録の修正</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="edit-record-id">
+        <div class="mb-3">
+          <label class="form-label fw-bold">出勤時刻</label>
+          <input type="datetime-local" class="form-control" id="edit-clock-in">
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-bold">退勤時刻</label>
+          <input type="datetime-local" class="form-control" id="edit-clock-out">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+        <button type="button" class="btn btn-primary" onclick="Attendance.saveEdit()">保存</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================ -->
+<!-- モーダル: ユーザー編集 -->
+<!-- ================================================================ -->
+<div class="modal fade" id="edit-user-modal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">ユーザー情報の編集</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="edit-user-id">
+        <div class="mb-3">
+          <label class="form-label fw-bold">ユーザー名</label>
+          <input type="text" class="form-control" id="edit-user-name">
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-bold">時給（円）</label>
+          <input type="number" class="form-control" id="edit-user-rate">
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="edit-user-active" checked>
+          <label class="form-check-label" for="edit-user-active">有効</label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+        <button type="button" class="btn btn-primary" onclick="Admin.saveUser()">保存</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- フッター -->
+<footer class="text-center text-muted py-4 mt-5">
+  <small>勤怠管理システム &copy; 2026</small>
+</footer>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/api.js"></script>
+<script src="js/attendance.js"></script>
+<script src="js/report.js"></script>
+<script src="js/admin.js"></script>
+<script src="js/app.js"></script>
+<script>
+  // 勤怠一覧の年月フィルター初期化
+  Attendance.initListFilters();
+  // 管理者のユーザーフィルター初期化（ユーザー読み込み後）
+  const origLoadUsers = App.loadUsers.bind(App);
+  App.loadUsers = async function() {
+    await origLoadUsers();
+    Admin.populateAdminUserFilter();
+  };
+</script>
+</body>
+</html>
