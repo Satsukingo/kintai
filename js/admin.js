@@ -84,6 +84,7 @@ const Admin = {
         <td>${r.date}</td>
         <td>${r.clock_in ? r.clock_in.substring(11, 16) : '-'}</td>
         <td>${r.clock_out ? r.clock_out.substring(11, 16) : '-'}</td>
+        <td>${r.break_hours ? App.formatHours(r.break_hours) : '-'}</td>
         <td>${App.formatHours(r.working_hours)}</td>
         <td>
           <button class="btn btn-sm btn-outline-primary" onclick="Attendance.editRecord('${r.record_id}', '${r.clock_in}', '${r.clock_out}')">

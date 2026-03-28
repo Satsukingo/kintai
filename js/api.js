@@ -86,9 +86,11 @@ const API = {
     return this.request('deleteUser', { user_id: userId });
   },
 
-  // 出退勤
+  // 出退勤・休憩
   clockIn: function(userId) { return this.request('clockIn', { user_id: userId }); },
   clockOut: function(userId) { return this.request('clockOut', { user_id: userId }); },
+  breakIn: function(userId) { return this.request('breakIn', { user_id: userId }); },
+  breakOut: function(userId) { return this.request('breakOut', { user_id: userId }); },
   getAttendance: function(params) { return this.request('getAttendance', params); },
   updateAttendance: function(data) { return this.request('updateAttendance', data); },
 

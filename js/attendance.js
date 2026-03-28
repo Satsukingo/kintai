@@ -49,19 +49,44 @@ const Attendance = {
     }
 
     if (!record.clock_out) {
+      var isOnBreak = record.break_start && !record.break_end;
+      var breakInfo = '';
+      if (isOnBreak) {
+        breakInfo = `
+          <div class="alert alert-warning d-inline-block">
+            <i class="bi bi-cup-hot"></i> 休憩中 ― ${record.break_start.substring(11, 16)} から
+          </div><br>
+          <button class="btn btn-info btn-lg px-4 mt-3 me-2" onclick="Attendance.doBreakOut()">
+            <i class="bi bi-arrow-return-left"></i> 休憩戻り
+          </button>`;
+      } else {
+        breakInfo = `
+          <div class="alert alert-success d-inline-block">
+            <i class="bi bi-clock"></i> 出勤中 ― ${record.clock_in.substring(11, 16)} から勤務中
+          </div><br>
+          <div class="mt-3">
+            <button class="btn btn-warning btn-lg px-4 me-2" onclick="Attendance.doBreakIn()">
+              <i class="bi bi-cup-hot"></i> 休憩入り
+            </button>
+            <button class="btn btn-danger btn-lg px-4" onclick="Attendance.doClockOut()">
+              <i class="bi bi-box-arrow-right"></i> 退勤
+            </button>
+          </div>`;
+      }
+      if (record.break_hours > 0) {
+        breakInfo += `<div class="mt-2"><span class="badge bg-warning text-dark fs-6">休憩: ${App.formatHours(record.break_hours)}</span></div>`;
+      }
       container.innerHTML = `
         <div class="text-center py-4">
           <p class="fs-5 mb-3"><strong>${user.user_name}</strong> さん</p>
-          <div class="alert alert-success d-inline-block">
-            <i class="bi bi-clock"></i> 出勤中 ― ${record.clock_in.substring(11, 16)} から勤務中
-          </div>
-          <br>
-          <button class="btn btn-danger btn-lg px-5 mt-3" onclick="Attendance.doClockOut()">
-            <i class="bi bi-box-arrow-right"></i> 退勤
-          </button>
+          ${breakInfo}
         </div>`;
       return;
     }
+
+    var breakBadge = record.break_hours > 0
+      ? `<span class="badge bg-warning text-dark fs-6 me-2">休憩: ${App.formatHours(record.break_hours)}</span>`
+      : '';
 
     container.innerHTML = `
       <div class="text-center py-4">
@@ -72,6 +97,7 @@ const Attendance = {
         <div class="mt-3">
           <span class="badge bg-primary fs-6 me-2">出勤: ${record.clock_in.substring(11, 16)}</span>
           <span class="badge bg-danger fs-6 me-2">退勤: ${record.clock_out.substring(11, 16)}</span>
+          ${breakBadge}
           <span class="badge bg-info fs-6">稼働: ${App.formatHours(record.working_hours)}</span>
         </div>
       </div>`;
@@ -108,6 +134,40 @@ const Attendance = {
       }
     } catch (e) {
       App.showAlert('退勤登録に失敗しました', 'danger');
+    }
+  },
+
+  async doBreakIn() {
+    const user = App.getSelectedUser('clock-user-select');
+    if (!user) return App.showAlert('ユーザーを選択してください', 'warning');
+
+    try {
+      const res = await API.breakIn(user.user_id);
+      if (res.status === 'ok') {
+        App.showAlert('休憩に入りました', 'success');
+        this.loadToday();
+      } else {
+        App.showAlert(res.message, 'warning');
+      }
+    } catch (e) {
+      App.showAlert('休憩登録に失敗しました', 'danger');
+    }
+  },
+
+  async doBreakOut() {
+    const user = App.getSelectedUser('clock-user-select');
+    if (!user) return App.showAlert('ユーザーを選択してください', 'warning');
+
+    try {
+      const res = await API.breakOut(user.user_id);
+      if (res.status === 'ok') {
+        App.showAlert(`休憩戻りしました（休憩時間: ${App.formatHours(res.data.break_hours)}）`, 'success');
+        this.loadToday();
+      } else {
+        App.showAlert(res.message, 'warning');
+      }
+    } catch (e) {
+      App.showAlert('休憩戻り登録に失敗しました', 'danger');
     }
   },
 
@@ -157,6 +217,7 @@ const Attendance = {
           <td>${r.date}</td>
           <td>${r.clock_in ? r.clock_in.substring(11, 16) : '-'}</td>
           <td>${r.clock_out ? r.clock_out.substring(11, 16) : '-'}</td>
+          <td>${r.break_hours ? App.formatHours(r.break_hours) : '-'}</td>
           <td>${App.formatHours(r.working_hours)}</td>
           <td>
             <button class="btn btn-sm btn-outline-primary" onclick="Attendance.editRecord('${r.record_id}', '${r.clock_in}', '${r.clock_out}')">
