@@ -129,6 +129,19 @@
               <input type="date" class="form-control" id="report-date" onchange="Report.loadExistingReport()">
             </div>
             <div class="mb-3">
+              <label class="form-label small fw-bold">勤務場所 <span class="text-danger">*</span></label>
+              <div class="d-flex gap-3">
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" name="report-work-location" id="report-location-office" value="出勤" checked>
+                  <label class="form-check-label" for="report-location-office">出勤</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" name="report-work-location" id="report-location-remote" value="在宅">
+                  <label class="form-check-label" for="report-location-remote">在宅</label>
+                </div>
+              </div>
+            </div>
+            <div class="mb-3">
               <label class="form-label small fw-bold">業務内容 <span class="text-danger">*</span></label>
               <textarea class="form-control" id="report-work-content" rows="3" placeholder="本日の業務内容を入力"></textarea>
             </div>

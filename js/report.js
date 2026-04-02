@@ -38,10 +38,12 @@ const Report = {
       if (res.status === 'ok') {
         const existing = res.data.find(r => r.date === dateStr);
         if (existing) {
+          this.setWorkLocation(existing.work_location || '出勤');
           document.getElementById('report-work-content').value = existing.work_content || '';
           document.getElementById('report-progress').value = existing.progress || '';
           document.getElementById('report-notes').value = existing.notes || '';
         } else {
+          this.setWorkLocation('出勤');
           document.getElementById('report-work-content').value = '';
           document.getElementById('report-progress').value = '';
           document.getElementById('report-notes').value = '';
@@ -57,6 +59,7 @@ const Report = {
     if (!user) return App.showAlert('ユーザーを選択してください', 'warning');
 
     const date = document.getElementById('report-date').value;
+    const workLocation = this.getWorkLocation();
     const workContent = document.getElementById('report-work-content').value;
     const progress = document.getElementById('report-progress').value;
     const notes = document.getElementById('report-notes').value;
@@ -68,6 +71,7 @@ const Report = {
       const res = await API.saveReport({
         user_id: user.user_id,
         date: date,
+        work_location: workLocation,
         work_content: workContent,
         progress: progress,
         notes: notes
@@ -114,9 +118,12 @@ const Report = {
         <div class="card-body py-2 px-3">
           <div class="d-flex justify-content-between align-items-center">
             <strong>${r.date}</strong>
-            <button class="btn btn-sm btn-outline-secondary" onclick="Report.fillReport('${r.date}', '${encodeURIComponent(r.work_content || '')}', '${encodeURIComponent(r.progress || '')}', '${encodeURIComponent(r.notes || '')}')">
-              編集
-            </button>
+            <div>
+              <span class="badge ${r.work_location === '在宅' ? 'bg-success' : 'bg-primary'} me-2">${r.work_location || '出勤'}</span>
+              <button class="btn btn-sm btn-outline-secondary" onclick="Report.fillReport('${r.date}', '${encodeURIComponent(r.work_location || '出勤')}', '${encodeURIComponent(r.work_content || '')}', '${encodeURIComponent(r.progress || '')}', '${encodeURIComponent(r.notes || '')}')">
+                編集
+              </button>
+            </div>
           </div>
           <div class="small mt-1">
             <div><span class="text-muted">業務:</span> ${r.work_content || '-'}</div>
@@ -128,10 +135,22 @@ const Report = {
     `).join('');
   },
 
-  fillReport(date, workContent, progress, notes) {
+  fillReport(date, workLocation, workContent, progress, notes) {
     document.getElementById('report-date').value = date;
+    this.setWorkLocation(decodeURIComponent(workLocation) || '出勤');
     document.getElementById('report-work-content').value = decodeURIComponent(workContent);
     document.getElementById('report-progress').value = decodeURIComponent(progress);
     document.getElementById('report-notes').value = decodeURIComponent(notes);
+  },
+
+  getWorkLocation() {
+    const checked = document.querySelector('input[name="report-work-location"]:checked');
+    return checked ? checked.value : '出勤';
+  },
+
+  setWorkLocation(value) {
+    const radio = document.querySelector(`input[name="report-work-location"][value="${value}"]`);
+    if (radio) radio.checked = true;
+    else document.getElementById('report-location-office').checked = true;
   }
 };
