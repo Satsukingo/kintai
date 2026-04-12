@@ -42,6 +42,7 @@ const App = {
       case 'clock': Attendance.loadToday(); break;
       case 'list': Attendance.loadList(); break;
       case 'report': Report.load(); break;
+      case 'shift': Shift.load(); break;
       case 'admin': Admin.load(); break;
     }
   },

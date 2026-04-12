@@ -39,6 +39,11 @@
       </button>
     </li>
     <li class="nav-item">
+      <button class="nav-link" data-tab="shift">
+        <i class="bi bi-calendar-week"></i> シフト
+      </button>
+    </li>
+    <li class="nav-item">
       <button class="nav-link" data-tab="admin">
         <i class="bi bi-gear"></i> 管理者
       </button>
@@ -169,6 +174,50 @@
   </div>
 
   <!-- ================================================================ -->
+  <!-- シフトタブ -->
+  <!-- ================================================================ -->
+  <div class="tab-content d-none" id="tab-shift">
+    <div class="row">
+      <!-- 左: シフト入力 -->
+      <div class="col-lg-5 mb-3">
+        <div class="card">
+          <div class="card-header fw-bold">シフト入力（1週間分）</div>
+          <div class="card-body">
+            <div class="mb-3">
+              <label class="form-label small fw-bold">ユーザー</label>
+              <select class="form-select user-select" id="shift-user-select" onchange="Shift.load()">
+                <option value="">ユーザーを選択</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label small fw-bold">週の開始日（月曜日）</label>
+              <input type="date" class="form-control" id="shift-week-start" onchange="Shift.loadWeek()">
+            </div>
+            <div id="shift-week-form"></div>
+            <button class="btn btn-primary w-100 mt-3" onclick="Shift.saveWeek()" id="shift-save-btn" style="display:none">
+              <i class="bi bi-save"></i> 1週間分を保存
+            </button>
+          </div>
+        </div>
+      </div>
+      <!-- 右: 月間シフト表示 -->
+      <div class="col-lg-7">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h6 class="fw-bold mb-0">今月のシフト</h6>
+          <div class="d-flex align-items-center gap-2">
+            <select class="form-select form-select-sm" id="shift-month-year" onchange="Shift.loadMonthly()" style="width:auto"></select>
+            <select class="form-select form-select-sm" id="shift-month-month" onchange="Shift.loadMonthly()" style="width:auto"></select>
+          </div>
+        </div>
+        <div id="shift-monthly-view">
+          <p class="text-muted">ユーザーを選択してください</p>
+        </div>
+        <div id="shift-monthly-summary" class="mt-2"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================================ -->
   <!-- 管理者タブ -->
   <!-- ================================================================ -->
   <div class="tab-content d-none" id="tab-admin">
@@ -182,6 +231,9 @@
       </button>
       <button class="btn btn-outline-primary btn-sm" data-admin-tab="admin-compensation" onclick="Admin.showSubTab('admin-compensation')">
         <i class="bi bi-cash-stack"></i> 報酬計算
+      </button>
+      <button class="btn btn-outline-primary btn-sm" data-admin-tab="admin-shifts" onclick="Admin.showSubTab('admin-shifts')">
+        <i class="bi bi-calendar-week"></i> シフト管理
       </button>
       <button class="btn btn-outline-primary btn-sm" data-admin-tab="admin-users" onclick="Admin.showSubTab('admin-users')">
         <i class="bi bi-people"></i> ユーザー管理
@@ -287,6 +339,46 @@
         </div>
       </div>
       <div id="comp-total" class="comp-total"></div>
+    </div>
+
+    <!-- 管理: シフト管理 -->
+    <div class="admin-subtab d-none" id="admin-shifts">
+      <div class="filter-bar d-flex flex-wrap align-items-end gap-2">
+        <div>
+          <label class="form-label small fw-bold mb-1">年</label>
+          <select class="form-select form-select-sm" id="admin-shift-year" onchange="Admin.loadShifts()"></select>
+        </div>
+        <div>
+          <label class="form-label small fw-bold mb-1">月</label>
+          <select class="form-select form-select-sm" id="admin-shift-month" onchange="Admin.loadShifts()"></select>
+        </div>
+        <div>
+          <label class="form-label small fw-bold mb-1">ユーザー</label>
+          <select class="form-select form-select-sm" id="admin-shift-user" onchange="Admin.loadShifts()">
+            <option value="">全員</option>
+          </select>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead>
+                <tr>
+                  <th>ユーザー</th>
+                  <th>日付</th>
+                  <th>開始</th>
+                  <th>終了</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody id="admin-shifts-body">
+                <tr><td colspan="5" class="text-center text-muted">読み込み中...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- 管理: ユーザー管理 -->
@@ -409,6 +501,7 @@
 <script src="js/api.js"></script>
 <script src="js/attendance.js"></script>
 <script src="js/report.js"></script>
+<script src="js/shift.js"></script>
 <script src="js/admin.js"></script>
 <script src="js/app.js"></script>
 <script>

@@ -10,7 +10,7 @@ const Admin = {
 
   initFilters() {
     const { year, month } = App.getCurrentYearMonth();
-    ['admin-year', 'admin-report-year', 'admin-comp-year'].forEach(id => {
+    ['admin-year', 'admin-report-year', 'admin-comp-year', 'admin-shift-year'].forEach(id => {
       const el = document.getElementById(id);
       if (el && el.options.length === 0) {
         for (let y = year - 1; y <= year + 1; y++) {
@@ -21,7 +21,7 @@ const Admin = {
         }
       }
     });
-    ['admin-month', 'admin-report-month', 'admin-comp-month'].forEach(id => {
+    ['admin-month', 'admin-report-month', 'admin-comp-month', 'admin-shift-month'].forEach(id => {
       const el = document.getElementById(id);
       if (el && el.options.length === 0) {
         for (let m = 1; m <= 12; m++) {
@@ -46,6 +46,7 @@ const Admin = {
       case 'admin-attendance': this.loadAttendance(); break;
       case 'admin-reports': this.loadReports(); break;
       case 'admin-compensation': this.loadCompensation(); break;
+      case 'admin-shifts': this.loadShifts(); break;
       case 'admin-users': this.loadUsers(); break;
     }
   },
@@ -299,15 +300,80 @@ const Admin = {
     }
   },
 
-  populateAdminUserFilter() {
-    const select = document.getElementById('admin-user-filter');
-    if (select.options.length <= 1) {
-      App.users.forEach(u => {
-        const opt = document.createElement('option');
-        opt.value = u.user_id;
-        opt.textContent = u.user_name;
-        select.appendChild(opt);
-      });
+  // シフト管理
+  async loadShifts() {
+    const year = document.getElementById('admin-shift-year').value;
+    const month = document.getElementById('admin-shift-month').value;
+    const userId = document.getElementById('admin-shift-user').value;
+
+    try {
+      const params = { year, month };
+      if (userId) params.user_id = userId;
+      const res = await API.getShifts(params);
+      if (res.status === 'ok') {
+        this.renderAdminShifts(res.data);
+      }
+    } catch (e) {
+      App.showAlert('シフトデータの取得に失敗しました', 'danger');
     }
+  },
+
+  renderAdminShifts(shifts) {
+    const tbody = document.getElementById('admin-shifts-body');
+    if (shifts.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">データがありません</td></tr>';
+      return;
+    }
+
+    const DAY_NAMES = ['月', '火', '水', '木', '金', '土', '日'];
+    tbody.innerHTML = shifts.sort((a, b) => {
+      const d = a.date.localeCompare(b.date);
+      return d !== 0 ? d : (a.user_name || '').localeCompare(b.user_name || '');
+    }).map(s => {
+      const d = new Date(s.date);
+      const dayIdx = (d.getDay() + 6) % 7;
+      const dayName = DAY_NAMES[dayIdx];
+      return `
+        <tr>
+          <td>${s.user_name}</td>
+          <td>${s.date}（${dayName}）</td>
+          <td>${s.start_time || '-'}</td>
+          <td>${s.end_time || '-'}</td>
+          <td>
+            <button class="btn btn-sm btn-outline-danger" onclick="Admin.deleteShift('${s.shift_id}')">
+              削除
+            </button>
+          </td>
+        </tr>`;
+    }).join('');
+  },
+
+  async deleteShift(shiftId) {
+    if (!confirm('このシフトを削除しますか？')) return;
+    try {
+      const res = await API.deleteShift(shiftId);
+      if (res.status === 'ok') {
+        App.showAlert('シフトを削除しました', 'success');
+        this.loadShifts();
+      } else {
+        App.showAlert(res.message, 'danger');
+      }
+    } catch (e) {
+      App.showAlert('シフト削除に失敗しました', 'danger');
+    }
+  },
+
+  populateAdminUserFilter() {
+    ['admin-user-filter', 'admin-shift-user'].forEach(id => {
+      const select = document.getElementById(id);
+      if (select && select.options.length <= 1) {
+        App.users.forEach(u => {
+          const opt = document.createElement('option');
+          opt.value = u.user_id;
+          opt.textContent = u.user_name;
+          select.appendChild(opt);
+        });
+      }
+    });
   }
 };

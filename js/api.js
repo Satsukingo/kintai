@@ -98,6 +98,11 @@ const API = {
   saveReport: function(data) { return this.request('saveReport', data); },
   getReports: function(params) { return this.request('getReports', params); },
 
+  // シフト
+  saveShift: function(data) { return this.request('saveShift', data); },
+  getShifts: function(params) { return this.request('getShifts', params); },
+  deleteShift: function(shiftId) { return this.request('deleteShift', { shift_id: shiftId }); },
+
   // 月次レポート
   getMonthlyReport: function(params) { return this.request('getMonthlyReport', params); },
 
