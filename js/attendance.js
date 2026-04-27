@@ -26,7 +26,24 @@ const Attendance = {
 
       if (res.status !== 'ok') return;
 
-      const todayRecord = res.data.find(r => r.date === dateStr);
+      let records = res.data;
+      // 月初の場合は前月も取得（跨日勤務対応）
+      if (today.getDate() <= 2) {
+        const prevDate = new Date(today);
+        prevDate.setMonth(prevDate.getMonth() - 1);
+        try {
+          const resPrev = await API.getAttendance({
+            user_id: user.user_id,
+            year: prevDate.getFullYear(),
+            month: prevDate.getMonth() + 1
+          });
+          if (resPrev.status === 'ok') records = records.concat(resPrev.data);
+        } catch (e) { /* ignore */ }
+      }
+
+      // 今日のレコードを優先、なければ未退勤の最新レコード（跨日勤務対応）
+      const todayRecord = records.find(r => r.date === dateStr)
+        || records.filter(r => !r.clock_out).sort((a, b) => b.date.localeCompare(a.date))[0];
       this.renderTodayStatus(todayRecord, user);
     } catch (e) {
       App.showAlert('勤怠情報の取得に失敗しました', 'danger');
@@ -51,6 +68,12 @@ const Attendance = {
     if (!record.clock_out) {
       var isOnBreak = record.break_start && !record.break_end;
       var breakInfo = '';
+      // 跨日勤務時は日付も表示
+      var today = new Date();
+      var todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+      var clockInLabel = record.date === todayStr
+        ? record.clock_in.substring(11, 16)
+        : `${record.date.substring(5)} ${record.clock_in.substring(11, 16)}`;
       if (isOnBreak) {
         breakInfo = `
           <div class="alert alert-warning d-inline-block">
@@ -62,7 +85,7 @@ const Attendance = {
       } else {
         breakInfo = `
           <div class="alert alert-success d-inline-block">
-            <i class="bi bi-clock"></i> 出勤中 ― ${record.clock_in.substring(11, 16)} から勤務中
+            <i class="bi bi-clock"></i> 出勤中 ― ${clockInLabel} から勤務中
           </div><br>
           <div class="mt-3">
             <button class="btn btn-warning btn-lg px-4 me-2" onclick="Attendance.doBreakIn()">
